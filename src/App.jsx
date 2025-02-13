@@ -9,8 +9,16 @@ const fetchData = async (page) => {
   const response = await fetch(`http://localhost:3000/user/${page}`, { method: "POST" });
   const result = await response.json();
 
-  return Array.isArray(result) ? result : result.data || [];
+  if (!Array.isArray(result)) {
+    return result.data || [];
+  }
+
+  return result.map((item, index) => ({
+    ...item,
+    id: item.id || `${page}-${index}`,
+  }));
 };
+
 
 
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, Suspense } from "react";
+import { useState, useEffect, Suspense } from "react";
 import "./DataTable.css";
 
 export default function DataTable({ columns, fetchData, fallback = "Chargement..." }) {
@@ -6,15 +6,23 @@ export default function DataTable({ columns, fetchData, fallback = "Chargement..
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [hasMore, setHasMore] = useState(true);
-  const observer = useRef();
+  const [loadedIds, setLoadedIds] = useState(new Set());
 
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
       try {
         const result = await fetchData(page);
+
         if (result.length > 0) {
-          setData(prevData => [...prevData, ...result]);
+          const newData = result.filter(item => !loadedIds.has(item.id));
+
+          if (newData.length > 0) {
+            setData(prevData => [...prevData, ...newData]);
+            setLoadedIds(prevIds => new Set([...prevIds, ...newData.map(item => item.id)]));
+          } else {
+            setHasMore(false);
+          }
         } else {
           setHasMore(false);
         }
